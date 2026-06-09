@@ -578,7 +578,7 @@ function generateDates() {
   const dates = [];
   for (let d = 9; d <= 30; d++) {
     const dateStr = `2026-06-${String(d).padStart(2, "0")}`;
-    const date = new Date(dateStr);
+    const date = new Date(2026, 5, d);
     const dayIndex = (date.getDay() + 6) % 7;
     dates.push({
       dateStr,
