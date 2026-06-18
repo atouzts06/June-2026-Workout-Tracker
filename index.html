@@ -409,27 +409,41 @@ const WORKOUT_TEMPLATE = {
     ]
   },
   WED: {
-    location: "Penn 1",
-    sections: [
+    location: "Penn 1 / Road",
+    options: [
       {
-        label: "Warm-Up",
-        items: [{ id: "wed-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
-      },
-      {
-        label: "Workout",
-        items: [
-          { id: "wed-w-1", text: "Pull-ups / Assisted Pull-ups", sets: "4 sets", hasWeight: true },
-          { id: "wed-w-2", text: "Lat Pulldown", sets: "4\xD710", hasWeight: true },
-          { id: "wed-w-3", text: "Seated Cable Rows", sets: "4\xD710", hasWeight: true },
-          { id: "wed-w-4", text: "Chest Supported Rows", sets: "3\xD710", hasWeight: true },
-          { id: "wed-w-5", text: "Rope Face Pulls", sets: "3\xD715", hasWeight: true },
-          { id: "wed-w-6", text: "Dumbbell Curls", sets: "3\xD712", hasWeight: true },
-          { id: "wed-w-7", text: "Hammer Curls", sets: "3\xD712", hasWeight: true }
+        label: "Option A \u2014 Pull",
+        sections: [
+          {
+            label: "Warm-Up",
+            items: [{ id: "wed-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
+          },
+          {
+            label: "Workout",
+            items: [
+              { id: "wed-w-1", text: "Pull-ups / Assisted Pull-ups", sets: "4 sets", hasWeight: true },
+              { id: "wed-w-2", text: "Lat Pulldown", sets: "4\xD710", hasWeight: true },
+              { id: "wed-w-3", text: "Seated Cable Rows", sets: "4\xD710", hasWeight: true },
+              { id: "wed-w-4", text: "Chest Supported Rows", sets: "3\xD710", hasWeight: true },
+              { id: "wed-w-5", text: "Rope Face Pulls", sets: "3\xD715", hasWeight: true },
+              { id: "wed-w-6", text: "Dumbbell Curls", sets: "3\xD712", hasWeight: true },
+              { id: "wed-w-7", text: "Hammer Curls", sets: "3\xD712", hasWeight: true }
+            ]
+          },
+          {
+            label: "Finish",
+            items: [{ id: "wed-f-1", text: "Incline treadmill \u2014 20 min", hasWeight: false }]
+          }
         ]
       },
       {
-        label: "Finish",
-        items: [{ id: "wed-f-1", text: "Incline treadmill \u2014 20 min", hasWeight: false }]
+        label: "Option B \u2014 Road Bike \u{1F6B4}\u{1F3FD}",
+        sections: [
+          {
+            label: "Ride",
+            items: [{ id: "wed-rb-1", text: "60\u201390 min \xB7 Moderate steady pace (conversational)", hasWeight: false }]
+          }
+        ]
       }
     ]
   },
@@ -579,14 +593,16 @@ const DAILY_CHECKLIST = [
 ];
 const WEIGHT_GOALS = [
   { date: "Jun 17", weight: 238, label: "Start" },
-  { date: "Jun 24", weight: "234\u2013235", label: "Week 1" },
-  { date: "Jul 1", weight: "231\u2013233", label: "Week 2" },
-  { date: "Jul 8", weight: "228\u2013232", label: "Goal" }
+  { date: "Jul 15", weight: "~227", label: "Month 1" },
+  { date: "Aug 12", weight: "~218", label: "Month 2" },
+  { date: "Sep 9", weight: "~210", label: "Month 3" },
+  { date: "Oct 7", weight: "~203", label: "Month 4" },
+  { date: "Oct 21", weight: "200", label: "Goal" }
 ];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function generateDates() {
   const dates = [];
-  const PROGRAM_DAYS = 22;
+  const PROGRAM_DAYS = 127;
   for (let i = 0; i < PROGRAM_DAYS; i++) {
     const date = new Date(2026, 5, 17 + i);
     const m = date.getMonth();
@@ -625,7 +641,11 @@ function WorkoutTracker() {
   const [weights, setWeights] = useStorage("wt2-weights", {});
   const [bodyWeights, setBodyWeights] = useStorage("wt2-bodyweights", {});
   const [dailyChecks, setDailyChecks] = useStorage("wt2-daily", {});
-  const [selectedDay, setSelectedDay] = useState(ALL_DATES[0].dateStr);
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const t = /* @__PURE__ */ new Date();
+    const ts = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+    return ALL_DATES.some((d) => d.dateStr === ts) ? ts : ALL_DATES[0].dateStr;
+  });
   const [selectedOptions, setSelectedOptions] = useStorage("wt2-options", {});
   const [view, setView] = useState("today");
   const currentDate = ALL_DATES.find((d) => d.dateStr === selectedDay);
@@ -1056,7 +1076,7 @@ function WorkoutTracker() {
           margin-bottom: 12px;
         }
         .prog-card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #4B5563; margin-bottom: 12px; font-weight: 700; }
-        .milestones { display: flex; gap: 4px; align-items: flex-end; }
+        .milestones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
         .milestone {
           flex: 1;
           background: rgba(255,255,255,0.04);
@@ -1099,7 +1119,7 @@ function WorkoutTracker() {
 
         /* Divider */
         .divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 12px 0; }
-      `), /* @__PURE__ */ React.createElement("div", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "header-top" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "header-title" }, "\u{1F525} Recomp Plan"), /* @__PURE__ */ React.createElement("div", { className: "header-sub" }, "June 17 \u2013 July 8, 2026")), /* @__PURE__ */ React.createElement("div", { className: "weight-badge" }, /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label" }, "Target"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-val" }, "228\u2013232"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label", style: { fontSize: 9, marginTop: 2 } }, "lbs by Jul 8"))), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "progress-bar-fill", style: { width: `${totalOverall.total > 0 ? totalOverall.done / totalOverall.total * 100 : 0}%` } })), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-label" }, totalOverall.done, " / ", totalOverall.total, " workouts completed overall")), /* @__PURE__ */ React.createElement("div", { className: "nav-tabs" }, ["today", "calendar", "progress"].map((v) => /* @__PURE__ */ React.createElement("button", { key: v, className: `nav-tab ${view === v ? "active" : ""}`, onClick: () => setView(v) }, v === "today" ? "Today" : v === "calendar" ? "Calendar" : "Progress"))), view === "today" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "day-scroll-wrap" }, ALL_DATES.map((d) => {
+      `), /* @__PURE__ */ React.createElement("div", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "header-top" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "header-title" }, "\u{1F525} Recomp Plan"), /* @__PURE__ */ React.createElement("div", { className: "header-sub" }, "Jun 17 \u2013 Oct 21, 2026")), /* @__PURE__ */ React.createElement("div", { className: "weight-badge" }, /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label" }, "Target"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-val" }, "200"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label", style: { fontSize: 9, marginTop: 2 } }, "lbs by Oct 21"))), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "progress-bar-fill", style: { width: `${totalOverall.total > 0 ? totalOverall.done / totalOverall.total * 100 : 0}%` } })), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-label" }, totalOverall.done, " / ", totalOverall.total, " workouts completed overall")), /* @__PURE__ */ React.createElement("div", { className: "nav-tabs" }, ["today", "calendar", "progress"].map((v) => /* @__PURE__ */ React.createElement("button", { key: v, className: `nav-tab ${view === v ? "active" : ""}`, onClick: () => setView(v) }, v === "today" ? "Today" : v === "calendar" ? "Calendar" : "Progress"))), view === "today" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "day-scroll-wrap" }, ALL_DATES.map((d) => {
     const { done, total } = getDayCompletion(d.dateStr);
     return /* @__PURE__ */ React.createElement(
       "div",
@@ -1143,7 +1163,7 @@ function WorkoutTracker() {
     const k = `${selectedDay}-${item.id}`;
     const done = dailyChecks[k];
     return /* @__PURE__ */ React.createElement("div", { key: item.id, className: `daily-row ${done ? "done" : ""}`, onClick: () => toggleDaily(selectedDay, item.id) }, /* @__PURE__ */ React.createElement("button", { className: "check-btn", style: done ? { background: "rgba(34,197,94,0.2)", borderColor: "#22C55E" } : {} }, done ? "\u2713" : ""), /* @__PURE__ */ React.createElement("div", { className: "daily-text" }, item.text));
-  })))), view === "calendar" && /* @__PURE__ */ React.createElement("div", { className: "calendar-view" }, /* @__PURE__ */ React.createElement("div", { className: "calendar-title" }, "Jun 17 \u2013 Jul 8, 2026"), /* @__PURE__ */ React.createElement("div", { className: "cal-week" }, ["M", "T", "W", "T", "F", "S", "S"].map((d, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "cal-day-header" }, d))), (() => {
+  })))), view === "calendar" && /* @__PURE__ */ React.createElement("div", { className: "calendar-view" }, /* @__PURE__ */ React.createElement("div", { className: "calendar-title" }, "Jun 17 \u2013 Oct 21, 2026"), /* @__PURE__ */ React.createElement("div", { className: "cal-week" }, ["M", "T", "W", "T", "F", "S", "S"].map((d, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "cal-day-header" }, d))), (() => {
     const rows = [];
     let week = [];
     ALL_DATES.forEach((d, i) => {
@@ -1200,7 +1220,7 @@ function WorkoutTracker() {
     "Muscle retention tightens physique",
     "Don't chase exhaustion",
     "Consistency > perfect workouts",
-    "230 \u2192 210 is a dramatic transformation"
+    "238 \u2192 200 \u2014 push the early weeks, then hold steady"
   ].map((r, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { fontSize: 13, color: "#6B7280", padding: "7px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.04)" : "none" } }, "\u2192 ", r)))));
 }
 
