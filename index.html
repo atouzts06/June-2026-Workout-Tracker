@@ -854,6 +854,14 @@ function WorkoutTracker() {
     const { done, total } = getDayCompletion(d.dateStr);
     return { done: acc.done + done, total: acc.total + total };
   }, { done: 0, total: 0 });
+  const daysCompleted = ALL_DATES.filter((d) => isDayComplete(d.dateStr)).length;
+  const totalDays = ALL_DATES.length;
+  const todayStr2 = (() => {
+    const t = /* @__PURE__ */ new Date();
+    return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+  })();
+  const todayIndex = ALL_DATES.findIndex((d) => d.dateStr === todayStr2);
+  const elapsedPct = todayIndex >= 0 ? (todayIndex + 1) / totalDays * 100 : null;
   return /* @__PURE__ */ React.createElement("div", { className: "app" }, /* @__PURE__ */ React.createElement("style", null, `
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0D0F14; }
@@ -919,6 +927,55 @@ function WorkoutTracker() {
           color: #6B7280;
           margin-top: 5px;
         }
+        .header-weight-bar {
+          background: rgba(255,255,255,0.06);
+          border-radius: 5px;
+          height: 8px;
+          overflow: hidden;
+        }
+        .header-weight-fill {
+          height: 100%;
+          border-radius: 5px;
+          background: linear-gradient(90deg, #3B82F6, #22C55E);
+          transition: width 0.4s ease;
+        }
+        .header-weight-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          color: #6B7280;
+          margin-top: 5px;
+        }
+        .header-weight-current { color: #4ADE80; font-weight: 700; }
+        .header-days-wrap { position: relative; margin-top: 12px; }
+        .header-days-bar {
+          background: rgba(255,255,255,0.06);
+          border-radius: 5px;
+          height: 8px;
+          overflow: hidden;
+        }
+        .header-days-fill {
+          height: 100%;
+          border-radius: 5px;
+          background: linear-gradient(90deg, #8B5CF6, #06B6D4);
+          transition: width 0.4s ease;
+        }
+        .header-days-tick {
+          position: absolute;
+          top: -2px;
+          width: 2px;
+          height: 12px;
+          background: rgba(255,255,255,0.65);
+          border-radius: 1px;
+        }
+        .header-days-labels {
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          color: #6B7280;
+          margin-top: 5px;
+        }
+        .header-days-strong { color: #A78BFA; font-size: 12px; }
 
         /* Nav */
         .nav-tabs {
@@ -1328,7 +1385,7 @@ function WorkoutTracker() {
 
         /* Divider */
         .divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 12px 0; }
-      `), /* @__PURE__ */ React.createElement("div", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "header-top" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "header-title" }, "\u{1F525} Recomp Plan"), /* @__PURE__ */ React.createElement("div", { className: "header-sub" }, "Jun 17 \u2013 Oct 21, 2026")), /* @__PURE__ */ React.createElement("div", { className: "weight-badge" }, /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label" }, "Target"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-val" }, "200"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label", style: { fontSize: 9, marginTop: 2 } }, "lbs by Oct 21"))), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "progress-bar-fill", style: { width: `${totalOverall.total > 0 ? totalOverall.done / totalOverall.total * 100 : 0}%` } })), /* @__PURE__ */ React.createElement("div", { className: "progress-bar-label" }, totalOverall.done, " / ", totalOverall.total, " workouts completed overall")), /* @__PURE__ */ React.createElement("div", { className: "nav-tabs" }, ["today", "calendar", "progress"].map((v) => /* @__PURE__ */ React.createElement("button", { key: v, className: `nav-tab ${view === v ? "active" : ""}`, onClick: () => setView(v) }, v === "today" ? "Today" : v === "calendar" ? "Calendar" : "Progress"))), view === "today" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "day-scroll-wrap" }, ALL_DATES.map((d) => {
+      `), /* @__PURE__ */ React.createElement("div", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "header-top" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "header-title" }, "\u{1F525} Recomp Plan"), /* @__PURE__ */ React.createElement("div", { className: "header-sub" }, "Jun 17 \u2013 Oct 21, 2026")), /* @__PURE__ */ React.createElement("div", { className: "weight-badge" }, /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label" }, "Target"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-val" }, "200"), /* @__PURE__ */ React.createElement("div", { className: "weight-badge-label", style: { fontSize: 9, marginTop: 2 } }, "lbs by Oct 21"))), /* @__PURE__ */ React.createElement("div", { className: "header-weight-bar" }, /* @__PURE__ */ React.createElement("div", { className: "header-weight-fill", style: { width: `${Math.max(0, Math.min(100, (ALLTIME_START - currentWeight) / (ALLTIME_START - GOAL_WEIGHT) * 100))}%` } })), /* @__PURE__ */ React.createElement("div", { className: "header-weight-labels" }, /* @__PURE__ */ React.createElement("span", null, ALLTIME_START, " start"), /* @__PURE__ */ React.createElement("span", { className: "header-weight-current" }, currentWeight.toFixed(1), " now \xB7 \u25BC", fmt(overallDown)), /* @__PURE__ */ React.createElement("span", null, GOAL_WEIGHT, " goal")), /* @__PURE__ */ React.createElement("div", { className: "header-days-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "header-days-bar" }, /* @__PURE__ */ React.createElement("div", { className: "header-days-fill", style: { width: `${totalDays > 0 ? daysCompleted / totalDays * 100 : 0}%` } })), elapsedPct != null && /* @__PURE__ */ React.createElement("div", { className: "header-days-tick", style: { left: `${elapsedPct}%` }, title: "Today" })), /* @__PURE__ */ React.createElement("div", { className: "header-days-labels" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("strong", { className: "header-days-strong" }, daysCompleted), " of ", totalDays, " days completed"), todayIndex >= 0 && /* @__PURE__ */ React.createElement("span", null, "\u2191 day ", todayIndex + 1, " today"))), /* @__PURE__ */ React.createElement("div", { className: "nav-tabs" }, ["today", "calendar", "progress"].map((v) => /* @__PURE__ */ React.createElement("button", { key: v, className: `nav-tab ${view === v ? "active" : ""}`, onClick: () => setView(v) }, v === "today" ? "Today" : v === "calendar" ? "Calendar" : "Progress"))), view === "today" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "day-scroll-wrap" }, ALL_DATES.map((d) => {
     const { done, total } = getDayCompletion(d.dateStr);
     const dayDone = isDayComplete(d.dateStr);
     const anyProgress = done > 0 || completedOptionCount(d.dateStr) > 0;
