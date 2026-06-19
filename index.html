@@ -326,27 +326,52 @@ const WEEK_LABELS = {
 };
 const WORKOUT_TEMPLATE = {
   MON: {
-    location: "Penn 1",
-    sections: [
+    location: "Penn 1 / Alt",
+    options: [
       {
-        label: "Warm-Up",
-        items: [{ id: "mon-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
-      },
-      {
-        label: "Workout",
-        items: [
-          { id: "mon-w-1", text: "Incline Dumbbell Press", sets: "4\xD78\u201310", hasWeight: true },
-          { id: "mon-w-2", text: "Flat Bench Press", sets: "4\xD78\u201310", hasWeight: true },
-          { id: "mon-w-3", text: "Machine Chest Press", sets: "3\xD712", hasWeight: true },
-          { id: "mon-w-4", text: "Shoulder Press", sets: "3\xD710", hasWeight: true },
-          { id: "mon-w-5", text: "Lateral Raises", sets: "4\xD715", hasWeight: true },
-          { id: "mon-w-6", text: "Rope Pushdowns", sets: "3\xD715", hasWeight: true },
-          { id: "mon-w-7", text: "Overhead Tricep Extensions", sets: "3\xD712", hasWeight: true }
+        label: "Option A \u2014 Push",
+        primary: true,
+        sections: [
+          {
+            label: "Warm-Up",
+            items: [{ id: "mon-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
+          },
+          {
+            label: "Workout",
+            items: [
+              { id: "mon-w-1", text: "Incline Dumbbell Press", sets: "4\xD78\u201310", hasWeight: true },
+              { id: "mon-w-2", text: "Flat Bench Press", sets: "4\xD78\u201310", hasWeight: true },
+              { id: "mon-w-3", text: "Machine Chest Press", sets: "3\xD712", hasWeight: true },
+              { id: "mon-w-4", text: "Shoulder Press", sets: "3\xD710", hasWeight: true },
+              { id: "mon-w-5", text: "Lateral Raises", sets: "4\xD715", hasWeight: true },
+              { id: "mon-w-6", text: "Rope Pushdowns", sets: "3\xD715", hasWeight: true },
+              { id: "mon-w-7", text: "Overhead Tricep Extensions", sets: "3\xD712", hasWeight: true }
+            ]
+          },
+          {
+            label: "Finish",
+            items: [{ id: "mon-f-1", text: "Incline treadmill walk \u2014 15\u201320 min", hasWeight: false }]
+          }
         ]
       },
       {
-        label: "Finish",
-        items: [{ id: "mon-f-1", text: "Incline treadmill walk \u2014 15\u201320 min", hasWeight: false }]
+        label: "Option B \u2014 Road Bike \u{1F6B4}\u{1F3FD}",
+        sections: [
+          { label: "Ride", items: [{ id: "mon-rb-1", text: "60\u201390 min \xB7 Moderate steady pace (conversational)", hasWeight: false }] }
+        ]
+      },
+      {
+        label: "Option C \u2014 Swim \u{1F3CA}",
+        sections: [
+          { label: "Swim", items: [{ id: "mon-sw-1", text: "30\u201345 min continuous swim \xB7 moderate pace", hasWeight: false }] }
+        ]
+      },
+      {
+        label: "Option D \u2014 Stair Stepper \u{1FA9C}",
+        sections: [
+          { label: "Stair Stepper", items: [{ id: "mon-ss-1", text: "25\u201335 min \xB7 steady moderate pace, no leaning on rails", hasWeight: false }] },
+          { label: "Finish", items: [{ id: "mon-ss-2", text: "Incline treadmill walk \u2014 10 min", hasWeight: false }] }
+        ]
       }
     ]
   },
@@ -355,6 +380,7 @@ const WORKOUT_TEMPLATE = {
     options: [
       {
         label: "Option A \u2014 Pool Day (23rd St)",
+        primary: true,
         sections: [
           {
             label: "Swim",
@@ -429,6 +455,7 @@ const WORKOUT_TEMPLATE = {
     options: [
       {
         label: "Option A \u2014 Pull",
+        primary: true,
         sections: [
           {
             label: "Warm-Up",
@@ -460,6 +487,19 @@ const WORKOUT_TEMPLATE = {
             items: [{ id: "wed-rb-1", text: "60\u201390 min \xB7 Moderate steady pace (conversational)", hasWeight: false }]
           }
         ]
+      },
+      {
+        label: "Option C \u2014 Swim \u{1F3CA}",
+        sections: [
+          { label: "Swim", items: [{ id: "wed-sw-1", text: "30\u201345 min continuous swim \xB7 moderate pace", hasWeight: false }] }
+        ]
+      },
+      {
+        label: "Option D \u2014 Stair Stepper \u{1FA9C}",
+        sections: [
+          { label: "Stair Stepper", items: [{ id: "wed-ss-1", text: "25\u201335 min \xB7 steady moderate pace, no leaning on rails", hasWeight: false }] },
+          { label: "Finish", items: [{ id: "wed-ss-2", text: "Incline treadmill walk \u2014 10 min", hasWeight: false }] }
+        ]
       }
     ]
   },
@@ -468,6 +508,7 @@ const WORKOUT_TEMPLATE = {
     options: [
       {
         label: "Option A \u2014 Road Bike \u{1F6B4}\u{1F3FD}",
+        primary: true,
         sections: [
           {
             label: "Ride",
@@ -517,34 +558,59 @@ const WORKOUT_TEMPLATE = {
     ]
   },
   FRI: {
-    location: "Penn 1",
-    sections: [
+    location: "Penn 1 / Alt",
+    options: [
       {
-        label: "Warm-Up",
-        items: [{ id: "fri-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
-      },
-      {
-        label: "Workout",
-        items: [
-          { id: "fri-w-1", text: "Barbell or Smith Squats", sets: "4\xD78\u201310", hasWeight: true },
-          { id: "fri-w-2", text: "Leg Press", sets: "4\xD712", hasWeight: true },
-          { id: "fri-w-3", text: "Romanian Deadlifts", sets: "4\xD710", hasWeight: true },
-          { id: "fri-w-4", text: "Leg Extensions", sets: "3\xD715", hasWeight: true },
-          { id: "fri-w-5", text: "Walking Lunges", sets: "3\xD720 steps", hasWeight: false },
-          { id: "fri-w-6", text: "Calf Raises", sets: "3\xD720", hasWeight: true }
+        label: "Option A \u2014 Legs + Core",
+        primary: true,
+        sections: [
+          {
+            label: "Warm-Up",
+            items: [{ id: "fri-wu-1", text: "Incline treadmill \u2014 5 min", hasWeight: false }]
+          },
+          {
+            label: "Workout",
+            items: [
+              { id: "fri-w-1", text: "Barbell or Smith Squats", sets: "4\xD78\u201310", hasWeight: true },
+              { id: "fri-w-2", text: "Leg Press", sets: "4\xD712", hasWeight: true },
+              { id: "fri-w-3", text: "Romanian Deadlifts", sets: "4\xD710", hasWeight: true },
+              { id: "fri-w-4", text: "Leg Extensions", sets: "3\xD715", hasWeight: true },
+              { id: "fri-w-5", text: "Walking Lunges", sets: "3\xD720 steps", hasWeight: false },
+              { id: "fri-w-6", text: "Calf Raises", sets: "3\xD720", hasWeight: true }
+            ]
+          },
+          {
+            label: "Core",
+            items: [
+              { id: "fri-c-1", text: "Hanging Leg Raises", hasWeight: false },
+              { id: "fri-c-2", text: "Cable Crunches", hasWeight: true },
+              { id: "fri-c-3", text: "Plank", hasWeight: false }
+            ]
+          },
+          {
+            label: "Finish",
+            items: [{ id: "fri-f-1", text: "Incline treadmill walk \u2014 15\u201320 min", hasWeight: false }]
+          }
         ]
       },
       {
-        label: "Core",
-        items: [
-          { id: "fri-c-1", text: "Hanging Leg Raises", hasWeight: false },
-          { id: "fri-c-2", text: "Cable Crunches", hasWeight: true },
-          { id: "fri-c-3", text: "Plank", hasWeight: false }
+        label: "Option B \u2014 Road Bike \u{1F6B4}\u{1F3FD}",
+        sections: [
+          { label: "Ride", items: [{ id: "fri-rb-1", text: "60\u201390 min \xB7 Moderate steady pace (conversational)", hasWeight: false }] }
         ]
       },
       {
-        label: "Finish",
-        items: [{ id: "fri-f-1", text: "Incline treadmill walk \u2014 15\u201320 min", hasWeight: false }]
+        label: "Option C \u2014 Swim \u{1F3CA}",
+        sections: [
+          { label: "Swim", items: [{ id: "fri-sw-1", text: "30\u201345 min continuous swim \xB7 moderate pace", hasWeight: false }] }
+        ]
+      },
+      {
+        label: "Option D \u2014 Stair Stepper \u{1FA9C}",
+        sections: [
+          { label: "Stair Stepper", items: [{ id: "fri-ss-1", text: "25\u201335 min \xB7 steady moderate pace, no leaning on rails", hasWeight: false }] },
+          { label: "Finish", items: [{ id: "fri-ss-2", text: "Incline treadmill walk \u2014 10 min", hasWeight: false }] }
+        ]
       }
     ]
   },
@@ -958,6 +1024,20 @@ function WorkoutTracker() {
         .option-tab.active.done {
           background: rgba(34,197,94,0.15);
         }
+        .option-tab.primary {
+          border-color: rgba(251,191,36,0.5);
+        }
+        .primary-note {
+          font-size: 12px;
+          color: #FCD34D;
+          background: rgba(251,191,36,0.07);
+          border: 1px solid rgba(251,191,36,0.22);
+          border-radius: 10px;
+          padding: 8px 12px;
+          margin-bottom: 14px;
+          line-height: 1.4;
+        }
+        .primary-note strong { color: #FDE68A; }
         .multi-note {
           font-size: 12px;
           color: #4ADE80;
@@ -1233,13 +1313,18 @@ function WorkoutTracker() {
       "button",
       {
         key: i,
-        className: `option-tab ${(selectedOptions[selectedDay] ?? 0) === i ? "active" : ""} ${optDone ? "done" : ""}`,
+        className: `option-tab ${(selectedOptions[selectedDay] ?? 0) === i ? "active" : ""} ${optDone ? "done" : ""} ${opt.primary ? "primary" : ""}`,
         onClick: () => setOption(selectedDay, i)
       },
       optDone ? "\u2713 " : "",
+      opt.primary ? "\u2B50 " : "",
       opt.label
     );
-  })), workout?.options && completedOptionCount(selectedDay) > 1 && /* @__PURE__ */ React.createElement("div", { className: "multi-note" }, "\u{1F525} ", completedOptionCount(selectedDay), " sessions logged today \u2014 nice double"), workout?.sections && renderSections(workout.sections, selectedDay), workout?.options && (() => {
+  })), workout?.options && workout.options.some((o) => o.primary) && (() => {
+    const primary = workout.options.find((o) => o.primary);
+    const primaryName = primary.label.replace(/^Option [A-Z] — /, "");
+    return /* @__PURE__ */ React.createElement("div", { className: "primary-note" }, "\u2B50 ", /* @__PURE__ */ React.createElement("strong", null, primaryName), " is today's primary workout \u2014 pick an alternate only if you need to swap.");
+  })(), workout?.options && completedOptionCount(selectedDay) > 1 && /* @__PURE__ */ React.createElement("div", { className: "multi-note" }, "\u{1F525} ", completedOptionCount(selectedDay), " sessions logged today \u2014 nice double"), workout?.sections && renderSections(workout.sections, selectedDay), workout?.options && (() => {
     const optIdx = selectedOptions[selectedDay] ?? 0;
     const opt = workout.options[optIdx];
     return opt ? renderSections(opt.sections, selectedDay) : null;
