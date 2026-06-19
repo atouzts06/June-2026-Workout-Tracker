@@ -707,6 +707,10 @@ const WEIGHT_GOALS = [
   { date: "Oct 7", weight: "~203", label: "Month 4" },
   { date: "Oct 21", weight: "200", label: "Goal" }
 ];
+const ALLTIME_START = 264.2;
+const ALLTIME_START_LABEL = "Oct '25";
+const RECOMP_START = 238;
+const GOAL_WEIGHT = 200;
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function generateDates() {
   const dates = [];
@@ -759,6 +763,14 @@ function WorkoutTracker() {
   const currentDate = ALL_DATES.find((d) => d.dateStr === selectedDay);
   const dayName = currentDate?.dayName;
   const workout = WORKOUT_TEMPLATE[dayName];
+  const loggedWeighIns = ALL_DATES.filter((d) => bodyWeights[d.dateStr] && !isNaN(parseFloat(bodyWeights[d.dateStr])));
+  const latestWeighIn = loggedWeighIns.length ? loggedWeighIns[loggedWeighIns.length - 1] : null;
+  const currentWeight = latestWeighIn ? parseFloat(bodyWeights[latestWeighIn.dateStr]) : RECOMP_START;
+  const latestPlaceholder = latestWeighIn ? bodyWeights[latestWeighIn.dateStr] : "lbs";
+  const overallDown = ALLTIME_START - currentWeight;
+  const recompDown = RECOMP_START - currentWeight;
+  const toGoal = currentWeight - GOAL_WEIGHT;
+  const fmt = (n) => (n >= 0 ? "" : "+") + Math.abs(n).toFixed(1);
   function toggleCheck(key) {
     setChecked((prev) => ({ ...prev, [key]: !prev[key] }));
   }
@@ -1166,6 +1178,45 @@ function WorkoutTracker() {
           align-items: center;
           gap: 10px;
         }
+        .downs-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 14px;
+        }
+        .downs-box {
+          flex: 1;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 10px;
+          padding: 10px 8px;
+          text-align: center;
+        }
+        .downs-box.recomp { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); }
+        .downs-box.overall { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.06); }
+        .downs-box.togoal { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.06); }
+        .downs-num { font-size: 17px; font-weight: 800; color: #fff; }
+        .downs-box.recomp .downs-num { color: #4ADE80; }
+        .downs-box.overall .downs-num { color: #60A5FA; }
+        .downs-box.togoal .downs-num { color: #FCD34D; }
+        .downs-label { font-size: 9px; color: #6B7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+        /* Journey card (progress view) */
+        .prog-card.journey { padding: 16px; }
+        .journey-top { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+        .journey-current { text-align: center; flex-shrink: 0; }
+        .journey-current-num { font-size: 32px; font-weight: 800; color: #fff; line-height: 1; }
+        .journey-current-label { font-size: 10px; color: #6B7280; text-transform: uppercase; margin-top: 4px; }
+        .journey-downs { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .journey-line { display: flex; flex-direction: column; }
+        .journey-down { font-size: 15px; font-weight: 700; }
+        .journey-down.recomp { color: #4ADE80; }
+        .journey-down.overall { color: #60A5FA; }
+        .journey-down.togoal { color: #FCD34D; }
+        .journey-from { font-size: 10px; color: #6B7280; }
+        .journey-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 5px; height: 8px; overflow: hidden; }
+        .journey-bar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #3B82F6, #22C55E); transition: width 0.4s ease; }
+        .journey-bar-labels { display: flex; justify-content: space-between; font-size: 10px; color: #6B7280; margin-top: 5px; }
+
         .bw-label { font-size: 13px; color: #9CA3AF; flex: 1; }
         .bw-input {
           width: 64px;
@@ -1302,12 +1353,13 @@ function WorkoutTracker() {
     "input",
     {
       type: "number",
+      inputMode: "decimal",
       className: "bw-input",
-      placeholder: "238",
+      placeholder: latestPlaceholder,
       value: bodyWeights[selectedDay] || "",
       onChange: (e) => setBodyWeights((prev) => ({ ...prev, [selectedDay]: e.target.value }))
     }
-  ), /* @__PURE__ */ React.createElement("div", { className: "bw-unit" }, "lbs")), /* @__PURE__ */ React.createElement("div", { className: "day-header" }, /* @__PURE__ */ React.createElement("div", { className: "day-color-bar", style: { background: dayColors[dayName] } }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "day-title" }, dayName, " \u2014 ", WEEK_LABELS[dayName]), /* @__PURE__ */ React.createElement("div", { className: "day-location" }, "\u{1F4CD} ", workout?.location)), /* @__PURE__ */ React.createElement("div", { className: "day-completion" }, /* @__PURE__ */ React.createElement("span", null, getDayCompletion(selectedDay).done), "/", getDayCompletion(selectedDay).total)), workout?.options && /* @__PURE__ */ React.createElement("div", { className: "option-tabs" }, workout.options.map((opt, i) => {
+  ), /* @__PURE__ */ React.createElement("div", { className: "bw-unit" }, "lbs")), /* @__PURE__ */ React.createElement("div", { className: "downs-row" }, /* @__PURE__ */ React.createElement("div", { className: "downs-box recomp" }, /* @__PURE__ */ React.createElement("div", { className: "downs-num" }, "\u25BC ", fmt(recompDown)), /* @__PURE__ */ React.createElement("div", { className: "downs-label" }, "recomp (since 238)")), /* @__PURE__ */ React.createElement("div", { className: "downs-box overall" }, /* @__PURE__ */ React.createElement("div", { className: "downs-num" }, "\u25BC ", fmt(overallDown)), /* @__PURE__ */ React.createElement("div", { className: "downs-label" }, "overall (since ", ALLTIME_START, ")")), /* @__PURE__ */ React.createElement("div", { className: "downs-box togoal" }, /* @__PURE__ */ React.createElement("div", { className: "downs-num" }, toGoal > 0 ? toGoal.toFixed(1) : "0.0"), /* @__PURE__ */ React.createElement("div", { className: "downs-label" }, "to go \u2192 ", GOAL_WEIGHT))), /* @__PURE__ */ React.createElement("div", { className: "day-header" }, /* @__PURE__ */ React.createElement("div", { className: "day-color-bar", style: { background: dayColors[dayName] } }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "day-title" }, dayName, " \u2014 ", WEEK_LABELS[dayName]), /* @__PURE__ */ React.createElement("div", { className: "day-location" }, "\u{1F4CD} ", workout?.location)), /* @__PURE__ */ React.createElement("div", { className: "day-completion" }, /* @__PURE__ */ React.createElement("span", null, getDayCompletion(selectedDay).done), "/", getDayCompletion(selectedDay).total)), workout?.options && /* @__PURE__ */ React.createElement("div", { className: "option-tabs" }, workout.options.map((opt, i) => {
     const optDone = isOptionComplete(selectedDay, opt);
     return /* @__PURE__ */ React.createElement(
       "button",
@@ -1369,7 +1421,7 @@ function WorkoutTracker() {
         total > 0 && /* @__PURE__ */ React.createElement("div", { className: "cal-cell-bar" }, /* @__PURE__ */ React.createElement("div", { className: "cal-cell-bar-fill", style: { width: `${barPct}%` } }))
       );
     })));
-  })()), view === "progress" && /* @__PURE__ */ React.createElement("div", { className: "progress-view" }, /* @__PURE__ */ React.createElement("div", { className: "stat-row", style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, ALL_DATES.filter((d) => isDayComplete(d.dateStr)).length), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Days Complete")), /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, totalOverall.done), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Sets Done")), /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, ALL_DATES.filter((d) => bodyWeights[d.dateStr]).length), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Weigh-ins"))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Weight Milestones"), /* @__PURE__ */ React.createElement("div", { className: "milestones" }, WEIGHT_GOALS.map((g, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: `milestone ${i === 0 ? "start" : i === WEIGHT_GOALS.length - 1 ? "goal" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "milestone-date" }, g.date), /* @__PURE__ */ React.createElement("div", { className: "milestone-weight" }, g.weight), /* @__PURE__ */ React.createElement("div", { className: "milestone-label" }, g.label))))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Weigh-in Log"), ALL_DATES.filter((d) => bodyWeights[d.dateStr]).length === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#4B5563", fontSize: 13 } }, "Log your weight on each day's page."), ALL_DATES.filter((d) => bodyWeights[d.dateStr]).map((d) => /* @__PURE__ */ React.createElement("div", { key: d.dateStr, style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", fontSize: 14, color: "#D1D5DB" } }, /* @__PURE__ */ React.createElement("span", null, d.label, " ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4B5563" } }, "(", d.dayName, ")")), /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700 } }, bodyWeights[d.dateStr], " lbs")))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Workout Streak"), /* @__PURE__ */ React.createElement("div", { className: "streak-row" }, ALL_DATES.map((d) => {
+  })()), view === "progress" && /* @__PURE__ */ React.createElement("div", { className: "progress-view" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card journey" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Progress Since Start"), /* @__PURE__ */ React.createElement("div", { className: "journey-top" }, /* @__PURE__ */ React.createElement("div", { className: "journey-current" }, /* @__PURE__ */ React.createElement("div", { className: "journey-current-num" }, currentWeight.toFixed(1)), /* @__PURE__ */ React.createElement("div", { className: "journey-current-label" }, "current lbs")), /* @__PURE__ */ React.createElement("div", { className: "journey-downs" }, /* @__PURE__ */ React.createElement("div", { className: "journey-line" }, /* @__PURE__ */ React.createElement("span", { className: "journey-down recomp" }, "\u25BC ", fmt(recompDown), " lbs"), /* @__PURE__ */ React.createElement("span", { className: "journey-from" }, "this recomp \xB7 since 238 (Jun 17)")), /* @__PURE__ */ React.createElement("div", { className: "journey-line" }, /* @__PURE__ */ React.createElement("span", { className: "journey-down overall" }, "\u25BC ", fmt(overallDown), " lbs"), /* @__PURE__ */ React.createElement("span", { className: "journey-from" }, "overall \xB7 since ", ALLTIME_START, " (", ALLTIME_START_LABEL, ")")), /* @__PURE__ */ React.createElement("div", { className: "journey-line" }, /* @__PURE__ */ React.createElement("span", { className: "journey-down togoal" }, toGoal > 0 ? toGoal.toFixed(1) : "0.0", " lbs"), /* @__PURE__ */ React.createElement("span", { className: "journey-from" }, "left to goal \u2192 ", GOAL_WEIGHT)))), /* @__PURE__ */ React.createElement("div", { className: "journey-bar-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "journey-bar-fill", style: { width: `${Math.max(0, Math.min(100, (ALLTIME_START - currentWeight) / (ALLTIME_START - GOAL_WEIGHT) * 100))}%` } })), /* @__PURE__ */ React.createElement("div", { className: "journey-bar-labels" }, /* @__PURE__ */ React.createElement("span", null, ALLTIME_START), /* @__PURE__ */ React.createElement("span", null, GOAL_WEIGHT, " goal"))), /* @__PURE__ */ React.createElement("div", { className: "stat-row", style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, ALL_DATES.filter((d) => isDayComplete(d.dateStr)).length), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Days Complete")), /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, totalOverall.done), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Sets Done")), /* @__PURE__ */ React.createElement("div", { className: "stat-box" }, /* @__PURE__ */ React.createElement("div", { className: "stat-val" }, ALL_DATES.filter((d) => bodyWeights[d.dateStr]).length), /* @__PURE__ */ React.createElement("div", { className: "stat-label" }, "Weigh-ins"))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Weight Milestones"), /* @__PURE__ */ React.createElement("div", { className: "milestones" }, WEIGHT_GOALS.map((g, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: `milestone ${i === 0 ? "start" : i === WEIGHT_GOALS.length - 1 ? "goal" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "milestone-date" }, g.date), /* @__PURE__ */ React.createElement("div", { className: "milestone-weight" }, g.weight), /* @__PURE__ */ React.createElement("div", { className: "milestone-label" }, g.label))))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Weigh-in Log"), ALL_DATES.filter((d) => bodyWeights[d.dateStr]).length === 0 && /* @__PURE__ */ React.createElement("div", { style: { color: "#4B5563", fontSize: 13 } }, "Log your weight on each day's page."), ALL_DATES.filter((d) => bodyWeights[d.dateStr]).map((d) => /* @__PURE__ */ React.createElement("div", { key: d.dateStr, style: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", fontSize: 14, color: "#D1D5DB" } }, /* @__PURE__ */ React.createElement("span", null, d.label, " ", /* @__PURE__ */ React.createElement("span", { style: { color: "#4B5563" } }, "(", d.dayName, ")")), /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700 } }, bodyWeights[d.dateStr], " lbs")))), /* @__PURE__ */ React.createElement("div", { className: "prog-card" }, /* @__PURE__ */ React.createElement("div", { className: "prog-card-title" }, "Workout Streak"), /* @__PURE__ */ React.createElement("div", { className: "streak-row" }, ALL_DATES.map((d) => {
     const { done } = getDayCompletion(d.dateStr);
     const complete = isDayComplete(d.dateStr);
     const partial = !complete && (done > 0 || completedOptionCount(d.dateStr) > 0);
