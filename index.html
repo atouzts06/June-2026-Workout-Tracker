@@ -711,6 +711,31 @@ const ALLTIME_START = 264.2;
 const ALLTIME_START_LABEL = "Oct '25";
 const RECOMP_START = 238;
 const GOAL_WEIGHT = 200;
+const PLATE_DENOMS = [45, 35, 25, 10, 5, 2.5];
+const BAR_OPTIONS = [45, 35, 15];
+function parseSetCount(item) {
+  if (item && item.sets) {
+    const m = String(item.sets).match(/^\s*(\d+)/);
+    if (m) return Math.min(12, Math.max(1, parseInt(m[1], 10)));
+  }
+  return 3;
+}
+function solvePlates(target, bar) {
+  const perSide = (target - bar) / 2;
+  if (isNaN(perSide)) return { ok: false, msg: "Enter a target weight" };
+  if (perSide < 0) return { ok: false, msg: `Target is below the ${bar} lb bar` };
+  const list = [];
+  let remaining = perSide;
+  for (const d of PLATE_DENOMS) {
+    const n = Math.floor(remaining / d + 1e-9);
+    if (n > 0) {
+      list.push({ plate: d, count: n });
+      remaining -= n * d;
+    }
+  }
+  remaining = Math.round(remaining * 100) / 100;
+  return { ok: true, perSide, list, remainder: remaining };
+}
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function generateDates() {
   const dates = [];
@@ -760,6 +785,12 @@ function WorkoutTracker() {
   });
   const [selectedOptions, setSelectedOptions] = useStorage("wt2-options", {});
   const [view, setView] = useState("today");
+  const [calcOpen, setCalcOpen] = useStorage("wt2-calc-open", false);
+  const [calcMode, setCalcMode] = useState("count");
+  const [calcBar, setCalcBar] = useStorage("wt2-calc-bar", 45);
+  const [calcPlates, setCalcPlates] = useState({});
+  const [calcTarget, setCalcTarget] = useState("");
+  const [setCounts, setSetCounts] = useStorage("wt2-setcounts", {});
   const currentDate = ALL_DATES.find((d) => d.dateStr === selectedDay);
   const dayName = currentDate?.dayName;
   const workout = WORKOUT_TEMPLATE[dayName];
@@ -837,18 +868,41 @@ function WorkoutTracker() {
   function renderSections(sections, dateStr) {
     return sections.map((section, si) => /* @__PURE__ */ React.createElement("div", { key: si, className: "section-block" }, /* @__PURE__ */ React.createElement("div", { className: "section-label" }, section.label), section.items.map((item) => {
       const ck = `${dateStr}-${item.id}`;
-      const wk = `${dateStr}-${item.id}-w`;
-      return /* @__PURE__ */ React.createElement("div", { key: item.id, className: `exercise-row ${checked[ck] ? "checked" : ""}` }, /* @__PURE__ */ React.createElement("button", { className: "check-btn", onClick: () => toggleCheck(ck) }, checked[ck] ? "\u2713" : ""), /* @__PURE__ */ React.createElement("div", { className: "exercise-info" }, /* @__PURE__ */ React.createElement("span", { className: "exercise-name" }, item.text), item.sets && /* @__PURE__ */ React.createElement("span", { className: "exercise-sets" }, item.sets)), item.hasWeight && /* @__PURE__ */ React.createElement("div", { className: "weight-input-wrap" }, /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          type: "number",
-          placeholder: "lbs",
-          value: weights[wk] || "",
-          onChange: (e) => setWeight(wk, e.target.value),
-          className: "weight-input"
-        }
-      ), /* @__PURE__ */ React.createElement("span", { className: "weight-unit" }, "lbs")));
+      return /* @__PURE__ */ React.createElement("div", { key: item.id, className: `exercise-row ${checked[ck] ? "checked" : ""}` }, /* @__PURE__ */ React.createElement("button", { className: "check-btn", onClick: () => toggleCheck(ck) }, checked[ck] ? "\u2713" : ""), /* @__PURE__ */ React.createElement("div", { className: "exercise-info" }, /* @__PURE__ */ React.createElement("span", { className: "exercise-name" }, item.text), item.sets && /* @__PURE__ */ React.createElement("span", { className: "exercise-sets" }, item.sets), item.hasWeight && renderSetInputs(dateStr, item)));
     })));
+  }
+  function renderSetInputs(dateStr, item) {
+    const baseKey = `${dateStr}-${item.id}`;
+    const n = setCounts[baseKey] ?? parseSetCount(item);
+    const rows = [];
+    for (let i = 1; i <= n; i++) {
+      const wk = `${baseKey}-s${i}-w`;
+      const rk = `${baseKey}-s${i}-r`;
+      rows.push(
+        /* @__PURE__ */ React.createElement("div", { className: "set-row", key: i }, /* @__PURE__ */ React.createElement("span", { className: "set-num" }, "Set ", i), /* @__PURE__ */ React.createElement(
+          "input",
+          {
+            className: "set-w",
+            type: "number",
+            inputMode: "decimal",
+            placeholder: "lb",
+            value: weights[wk] || "",
+            onChange: (e) => setWeight(wk, e.target.value)
+          }
+        ), /* @__PURE__ */ React.createElement("span", { className: "set-unit" }, "lb"), /* @__PURE__ */ React.createElement("span", { className: "set-x" }, "\xD7"), /* @__PURE__ */ React.createElement(
+          "input",
+          {
+            className: "set-r",
+            type: "number",
+            inputMode: "numeric",
+            placeholder: "reps",
+            value: weights[rk] || "",
+            onChange: (e) => setWeight(rk, e.target.value)
+          }
+        ))
+      );
+    }
+    return /* @__PURE__ */ React.createElement("div", { className: "set-list" }, rows, /* @__PURE__ */ React.createElement("div", { className: "set-controls" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setSetCounts((s) => ({ ...s, [baseKey]: Math.max(1, (s[baseKey] ?? parseSetCount(item)) - 1) })) }, "\u2212 set"), /* @__PURE__ */ React.createElement("button", { onClick: () => setSetCounts((s) => ({ ...s, [baseKey]: Math.min(12, (s[baseKey] ?? parseSetCount(item)) + 1) })) }, "+ set")));
   }
   const totalOverall = ALL_DATES.reduce((acc, d) => {
     const { done, total } = getDayCompletion(d.dateStr);
@@ -856,6 +910,8 @@ function WorkoutTracker() {
   }, { done: 0, total: 0 });
   const daysCompleted = ALL_DATES.filter((d) => isDayComplete(d.dateStr)).length;
   const totalDays = ALL_DATES.length;
+  const calcCountTotal = calcBar + 2 * PLATE_DENOMS.reduce((s, d) => s + d * (calcPlates[d] || 0), 0);
+  const calcSolution = solvePlates(parseFloat(calcTarget), calcBar);
   const todayStr2 = (() => {
     const t = /* @__PURE__ */ new Date();
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
@@ -1170,6 +1226,53 @@ function WorkoutTracker() {
         .exercise-row.checked .exercise-name { text-decoration: line-through; color: #6B7280; }
         .exercise-sets { font-size: 11px; color: #4B5563; display: block; margin-top: 2px; }
 
+        /* Per-set inputs */
+        .set-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .set-row { display: flex; align-items: center; gap: 6px; }
+        .set-num { font-size: 11px; color: #6B7280; width: 38px; flex-shrink: 0; font-weight: 600; }
+        .set-w {
+          width: 58px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 6px;
+          padding: 5px 6px;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+          text-align: right;
+          outline: none;
+          -moz-appearance: textfield;
+        }
+        .set-r {
+          width: 46px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 6px;
+          padding: 5px 6px;
+          color: #D1D5DB;
+          font-size: 13px;
+          font-weight: 600;
+          text-align: right;
+          outline: none;
+          -moz-appearance: textfield;
+        }
+        .set-w::-webkit-outer-spin-button, .set-w::-webkit-inner-spin-button,
+        .set-r::-webkit-outer-spin-button, .set-r::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .set-w:focus, .set-r:focus { border-color: #3B82F6; }
+        .set-unit { font-size: 10px; color: #4B5563; }
+        .set-x { font-size: 11px; color: #4B5563; margin: 0 1px; }
+        .set-controls { display: flex; gap: 6px; margin-top: 3px; }
+        .set-controls button {
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.12);
+          color: #9CA3AF;
+          border-radius: 6px;
+          padding: 3px 10px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
         /* Weight Input */
         .weight-input-wrap {
           display: flex;
@@ -1223,6 +1326,135 @@ function WorkoutTracker() {
         .daily-row:last-child { border-bottom: none; }
         .daily-row.done .daily-text { color: #4B5563; text-decoration: line-through; }
         .daily-text { font-size: 13px; color: #9CA3AF; }
+
+        /* Plate Calculator */
+        .calc-wrap {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          margin-bottom: 14px;
+          overflow: hidden;
+        }
+        .calc-toggle {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: none;
+          border: none;
+          color: #E8E9EC;
+          font-size: 14px;
+          font-weight: 700;
+          padding: 13px 14px;
+          cursor: pointer;
+        }
+        .calc-chevron { color: #6B7280; font-size: 11px; }
+        .calc-body { padding: 0 14px 14px; }
+        .calc-modes { display: flex; gap: 6px; margin-bottom: 12px; }
+        .calc-mode {
+          flex: 1;
+          padding: 7px 4px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.04);
+          color: #9CA3AF;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .calc-mode.active { background: rgba(59,130,246,0.18); border-color: #3B82F6; color: #93C5FD; }
+        .calc-bar-row, .calc-target-row { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .calc-bar-label { font-size: 12px; color: #9CA3AF; margin-right: 4px; }
+        .calc-bar-pill {
+          padding: 5px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.04);
+          color: #D1D5DB;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .calc-bar-pill.active { background: rgba(59,130,246,0.18); border-color: #3B82F6; color: #93C5FD; }
+        .calc-bar-unit { font-size: 11px; color: #6B7280; }
+        .calc-hint { font-size: 11px; color: #6B7280; margin-bottom: 8px; }
+        .calc-hint strong { color: #9CA3AF; }
+        .calc-plate-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 6px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .calc-plate-name { font-size: 14px; color: #D1D5DB; font-weight: 600; }
+        .calc-stepper { display: flex; align-items: center; gap: 10px; }
+        .calc-stepper button {
+          width: 30px; height: 30px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.06);
+          color: #fff;
+          font-size: 18px;
+          font-weight: 700;
+          cursor: pointer;
+          line-height: 1;
+        }
+        .calc-plate-count { min-width: 20px; text-align: center; font-size: 15px; font-weight: 700; color: #fff; }
+        .calc-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 12px;
+          padding: 12px 14px;
+          background: rgba(59,130,246,0.1);
+          border: 1px solid rgba(59,130,246,0.3);
+          border-radius: 10px;
+        }
+        .calc-total-num { font-size: 24px; font-weight: 800; color: #fff; }
+        .calc-total-sub { font-size: 11px; color: #93C5FD; margin-top: 2px; }
+        .calc-clear {
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          color: #9CA3AF;
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .calc-target-input {
+          flex: 1;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px;
+          padding: 7px 10px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          outline: none;
+          -moz-appearance: textfield;
+        }
+        .calc-target-input::-webkit-outer-spin-button,
+        .calc-target-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .calc-target-input:focus { border-color: #3B82F6; }
+        .calc-solution {
+          padding: 12px 14px;
+          background: rgba(34,197,94,0.08);
+          border: 1px solid rgba(34,197,94,0.25);
+          border-radius: 10px;
+        }
+        .calc-sol-head { font-size: 12px; color: #9CA3AF; margin-bottom: 8px; }
+        .calc-sol-plates { display: flex; flex-wrap: wrap; gap: 6px; }
+        .calc-chip {
+          background: rgba(34,197,94,0.18);
+          border: 1px solid rgba(34,197,94,0.4);
+          color: #4ADE80;
+          border-radius: 8px;
+          padding: 5px 10px;
+          font-size: 14px;
+          font-weight: 700;
+        }
+        .calc-sol-msg { font-size: 12px; color: #FCD34D; margin-top: 6px; }
 
         /* Body weight log */
         .bw-section {
@@ -1406,7 +1638,20 @@ function WorkoutTracker() {
         }
       )
     );
-  })), /* @__PURE__ */ React.createElement("div", { className: "workout-view" }, /* @__PURE__ */ React.createElement("div", { className: "bw-section" }, /* @__PURE__ */ React.createElement("div", { className: "bw-label" }, "Today's body weight"), /* @__PURE__ */ React.createElement(
+  })), /* @__PURE__ */ React.createElement("div", { className: "workout-view" }, /* @__PURE__ */ React.createElement("div", { className: "calc-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "calc-toggle", onClick: () => setCalcOpen(!calcOpen) }, /* @__PURE__ */ React.createElement("span", null, "\u{1F3CB}\uFE0F Plate Calculator"), /* @__PURE__ */ React.createElement("span", { className: "calc-chevron" }, calcOpen ? "\u25B2" : "\u25BC")), calcOpen && /* @__PURE__ */ React.createElement("div", { className: "calc-body" }, /* @__PURE__ */ React.createElement("div", { className: "calc-modes" }, /* @__PURE__ */ React.createElement("button", { className: `calc-mode ${calcMode === "count" ? "active" : ""}`, onClick: () => setCalcMode("count") }, "Count \u2192 total"), /* @__PURE__ */ React.createElement("button", { className: `calc-mode ${calcMode === "target" ? "active" : ""}`, onClick: () => setCalcMode("target") }, "Target \u2192 plates")), /* @__PURE__ */ React.createElement("div", { className: "calc-bar-row" }, /* @__PURE__ */ React.createElement("span", { className: "calc-bar-label" }, "Bar"), BAR_OPTIONS.map((b) => /* @__PURE__ */ React.createElement("button", { key: b, className: `calc-bar-pill ${calcBar === b ? "active" : ""}`, onClick: () => setCalcBar(b) }, b)), /* @__PURE__ */ React.createElement("span", { className: "calc-bar-unit" }, "lb")), calcMode === "count" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "calc-hint" }, "Tap to add plates loaded ", /* @__PURE__ */ React.createElement("strong", null, "per side"), ":"), PLATE_DENOMS.map((d) => {
+    const n = calcPlates[d] || 0;
+    return /* @__PURE__ */ React.createElement("div", { key: d, className: "calc-plate-row" }, /* @__PURE__ */ React.createElement("span", { className: "calc-plate-name" }, d, " lb"), /* @__PURE__ */ React.createElement("div", { className: "calc-stepper" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setCalcPlates((p) => ({ ...p, [d]: Math.max(0, (p[d] || 0) - 1) })) }, "\u2212"), /* @__PURE__ */ React.createElement("span", { className: "calc-plate-count" }, n), /* @__PURE__ */ React.createElement("button", { onClick: () => setCalcPlates((p) => ({ ...p, [d]: (p[d] || 0) + 1 })) }, "+")));
+  }), /* @__PURE__ */ React.createElement("div", { className: "calc-total" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "calc-total-num" }, calcCountTotal, " lb"), /* @__PURE__ */ React.createElement("div", { className: "calc-total-sub" }, (calcCountTotal - calcBar) / 2, " lb per side \xB7 ", calcBar, " lb bar")), /* @__PURE__ */ React.createElement("button", { className: "calc-clear", onClick: () => setCalcPlates({}) }, "Reset"))), calcMode === "target" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "calc-target-row" }, /* @__PURE__ */ React.createElement("span", { className: "calc-bar-label" }, "Target total"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "number",
+      inputMode: "decimal",
+      className: "calc-target-input",
+      placeholder: "e.g. 185",
+      value: calcTarget,
+      onChange: (e) => setCalcTarget(e.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement("span", { className: "calc-bar-unit" }, "lb")), calcTarget !== "" && /* @__PURE__ */ React.createElement("div", { className: "calc-solution" }, !calcSolution.ok ? /* @__PURE__ */ React.createElement("div", { className: "calc-sol-msg" }, calcSolution.msg) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "calc-sol-head" }, "Per side (", calcSolution.perSide, " lb):"), calcSolution.list.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "calc-sol-msg" }, "Just the bar \u2014 no plates needed.") : /* @__PURE__ */ React.createElement("div", { className: "calc-sol-plates" }, calcSolution.list.map((p) => /* @__PURE__ */ React.createElement("span", { key: p.plate, className: "calc-chip" }, p.count, "\xD7", p.plate))), calcSolution.remainder > 0 && /* @__PURE__ */ React.createElement("div", { className: "calc-sol-msg" }, "\u26A0 ", calcSolution.remainder, " lb/side can't be made with standard plates")))))), /* @__PURE__ */ React.createElement("div", { className: "bw-section" }, /* @__PURE__ */ React.createElement("div", { className: "bw-label" }, "Today's body weight"), /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "number",
